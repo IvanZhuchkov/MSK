@@ -1,0 +1,5 @@
+﻿  Source.cpp
+E:\Programs\Visual Studio\MSK\Msk\Source.cpp(38,30): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
+E:\Programs\Visual Studio\MSK\Msk\Source.cpp(43,12): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
+E:\Programs\Visual Studio\MSK\Msk\Source.cpp(192,11): warning C4101: track: неиспользованная локальная переменная
+  Msk.vcxproj -> E:\Programs\Visual Studio\MSK\Msk\Debug\Msk.exe

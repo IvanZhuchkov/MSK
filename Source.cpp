@@ -5,44 +5,102 @@ using namespace std;
 
 struct memory {
 	double length;
-	int way[5];
+	int way[6];
 };
-double* generator() {
-	normal_distribution<double> inter(0,0.25);
+struct signal {
+	int fre;
+	double x;
+	double y;
+};
+double scal(signal a, signal b) {
+	double r = a.x * b.x + a.y * b.y;
+	return r;
+}
+double *indef(signal r) {
+	signal a, b, c, d;
+	a.x = 0;
+	a.y = 1;
+	b.x = 1;
+	b.y = 0;
+	c.x = 0;
+	c.y = -1;
+	d.x = -1;
+	d.y = 0;
+	double *buff=new double[4];
+	buff[0] = scal(r, a);
+	buff[1] = scal(r, b);
+	buff[2] = scal(r, c);
+	buff[3] = scal(r, d);
+	return buff;
+}
+signal* generator() {
+	normal_distribution<double> inter(0,0.5);
 	default_random_engine e(time(0));
-	int data[10];
-	double corrupteddata[10];
+	signal data[10];
+	signal *corrupteddata=new signal[10];
 	int grid[2][4][4]{ {{1,0,0,1},{0,1,1,0},{0,1,1,0},{1,0,0,1}},{{1,1,0,0},{1,1,0,0},{0,0,1,1},{0,0,1,1} } };
 	int i = 0;
 	srand(time(0));
 	int buff;
 	double dbuff;
 	buff = rand() % 4;
-	data[0] = buff;
-	for (i = 0; i < 5; i++) {
+	data[0].fre = buff;
+	for (i = 0; i < 9; i++) {
 		buff = rand() % 4;
-		if (grid[i % 2][data[i]][buff] == 0) {
+		if (grid[i % 2][data[i].fre][buff] == 0) {
 			i = i - 1;
 			continue;
 		}
 		else {
-			data[i + 1] = buff;
+			data[i + 1].fre = buff;
 		}
 	}
-	for (i = 0; i < 5; i++) {
-		cout << data[i]+1 << " ";
+	for (i = 0; i < 10; i++) {
+		cout << data[i].fre+1 << " ";
 	}
 	cout << endl<<endl;
-	for (i = 0; i < 5; i++) {
-		dbuff = data[i] + inter(e);
-		if (dbuff < 0) {
-			dbuff = 3 + dbuff;
+	for (i = 0; i < 10; i++) {
+		if (data[i].fre == 0) {
+			data[i].x = 0;
+			data[i].y = 1;
 		}
-		corrupteddata[i] = ((int)(dbuff)%4)+(dbuff-(int)(dbuff));
-		cout << corrupteddata[i] + 1 << " ";
+		if (data[i].fre == 1) {
+			data[i].x = 1;
+			data[i].y = 0;
+		}
+		if (data[i].fre == 2) {
+			data[i].x = 0;
+			data[i].y = -1;
+		}
+		if (data[i].fre == 3) {
+			data[i].x = -1;
+			data[i].y = 0;
+		}
+	}
+	for (i = 0; i < 10; i++) {
+		corrupteddata[i].x = data[i].x + inter(e);
+		corrupteddata[i].y = data[i].y + inter(e);
+		dbuff = sqrt(corrupteddata[i].x * corrupteddata[i].x + corrupteddata[i].y * corrupteddata[i].y);
+		corrupteddata[i].x = corrupteddata[i].x / dbuff;
+		corrupteddata[i].y = corrupteddata[i].y / dbuff;
+		cout << corrupteddata[i].x << " "<< corrupteddata[i].y<<"  ";
 	}
 	cout << endl << endl;
 	return corrupteddata;
+}
+int s_msk(signal* recieve) {
+	int i=0,j=0;
+	double* buff = new double[4];
+	for (i = 0; i < 10; i++) {
+		buff = indef(recieve[i]);
+		for (j = 0; j < 4; j++) {
+			if (buff[j] == max({ buff[0], buff[1], buff[2], buff[3] })) {
+				cout << j + 1 <<" "<< buff[0] << " " << buff[1] << " " << buff[2] << " " << buff[3] << endl;
+			}
+		}
+	}
+	cout << endl;
+	return 0;
 }
 double **identificator(double *recieve) {
 	int i = 0, j=0;
@@ -64,8 +122,53 @@ double **identificator(double *recieve) {
 		cout << endl;
 	}
 	return track;
+	
 }
-int step(double ** track, int start, int n_step, memory *a, static int& last, double temp_l) {
+memory **n_msk(signal * recieve, int i, memory **a) {
+	int grid[2][4][4]{ {{1,0,0,1},{0,1,1,0},{0,1,1,0},{1,0,0,1}},{{1,1,0,0},{1,1,0,0},{0,0,1,1},{0,0,1,1} } };
+	int j=0,k=0,s=0;
+	int b[2];
+	double **buff=new double*[6];
+	for (i = 1; i < 6; i++) {
+		buff[i - 1] = indef(recieve[i - 1]);
+		buff[i - 1][0] = buff[i - 1][0] + a[i-1][0].length;
+		buff[i - 1][1] = buff[i - 1][1] + a[i-1][1].length;
+		buff[i - 1][2] = buff[i - 1][2] + a[i-1][2].length;
+		buff[i - 1][3] = buff[i - 1][3] + a[i-1][3].length;
+		cout << endl<<buff[i-1][0]<<endl;
+		for (j = 0; j < 4; j++) {
+			for (k = 0; k < 4; k++) {
+				if (grid[(i - 1) % 2][k][j]) {
+					b[s] = k;
+					s++;
+				}
+			}
+			s = 0;
+			if (buff[i-1][b[0]] > buff[i-1][b[1]]) {
+				cout << b[0] + 1 << "<- " << j + 1 << endl;
+				a[i][j].length = buff[i-1][b[0]];
+				cout << a[i][j].length << endl;
+				for (k = 0; k < i; k++) {
+					a[i][j].way[k] = a[i - 1][b[0]].way[k];
+				}
+				a[i][j].way[i] = b[0];
+				
+			}
+			else {
+				cout << b[1] + 1 << "<- " << j + 1 << endl;
+				a[i][j].length = buff[i-1][b[1]];
+				for (k = 0; k < i; k++) {
+					a[i][j].way[k] = a[i - 1][b[1]].way[k];
+				}
+				a[i][j].way[i] = b[1];
+				cout << a[i][j].length << endl;
+			}
+
+		}
+	}
+	return a;
+}
+int step(double ** track, int start, int n_step, memory *a, int& last, double temp_l) {
 	int grid[2][4][4]{ {{1,0,0,1},{0,1,1,0},{0,1,1,0},{1,0,0,1}},{{1,1,0,0},{1,1,0,0},{0,0,1,1},{0,0,1,1} } };
 	int i = 0;
 	for (i = 0; i < 4; i++) {
@@ -87,18 +190,39 @@ int step(double ** track, int start, int n_step, memory *a, static int& last, do
 int main() {
 	int grid[2][4][4]{ {{1,0,0,1},{0,1,1,0},{0,1,1,0},{1,0,0,1}},{{1,1,0,0},{1,1,0,0},{0,0,1,1},{0,0,1,1} } };
 	double **track;
-	int start;
 	double buff;
-	int t[8][8] = { 0 };
+	signal* recieve;
 	int i = 0, n_step = 0;
-	track = identificator(generator());
-	for (i = 0; i < 4; i++) {
+	memory **a = new memory*[6];
+	for (i = 0; i < 6; i++) {
+		a[i] = new memory[4];
+	}
+	memory **b;
+	a[0][0].length = 0;
+	a[0][1].length = 0;
+	a[0][2].length = 0;
+	a[0][3].length = 0;
+	recieve = generator();
+	s_msk(recieve);
+	b=n_msk(recieve,1,a);
+	buff = b[5][0].length;
+	n_step = 0;
+	for (i = 1; i < 6; i++) {
+		if (buff < b[3][i].length) {
+			buff = b[3][i].length;
+			n_step = i;
+		}
+	}
+	for (i = 1; i < 6; i++) {
+		cout << b[5][n_step].way[i]+1 << " ";
+	}
+	/*for (i = 0; i < 4; i++) {
 		if (track[0][i] == min({ track[0][0],track[0][1],track[0][2],track[0][3] })) {
 			start = i;
 		};
 	}
 	memory a[1000];
-	static int last = 1;
+	int last = 1;
 	step(track, start, n_step,a,last,track[0][start]);
 	for (i = 1; i < last; i++) {
 		cout << endl;
@@ -119,6 +243,6 @@ int main() {
 	cout<< endl << start+1 << " ";
 	for (i = 0; i < 4; i++) {
 		cout << a[n_step].way[i]+1<<" ";
-	}
+	}*/
 	return 0;
 }
